@@ -2,7 +2,6 @@ import os
 import requests
 from datetime import datetime
 from dateutil.rrule import rrule, DAILY
-import re
 import gzip
 import shutil
 import time
@@ -82,10 +81,3 @@ if __name__ == '__main__':
     DataFetcher(
         base_url=zipped_base_url, start_date=zipped_start_date, end_date=zipped_end_date, target_dir=target_dir
     ).execute()
-
-    # unzipped_base_url = "http://g0v-data.gugod.org/people-in-news/db/articles-{}.jsonl"
-    # unzipped_start_date = datetime(2018, 12, 18)
-    # unzipped_end_date = datetime(2018, 12, 20)
-    # DataFetcher(
-    #     base_url=unzipped_base_url, start_date=unzipped_start_date, end_date=unzipped_end_date, target_dir=target_dir
-    # ).execute()
