@@ -5,7 +5,6 @@ import uuid
 import os
 import re
 from tqdm import tqdm
-import traceback
 
 
 def fetch_news_file(news_dir: str):
@@ -27,6 +26,7 @@ class NewsFileConverter:
 
         self.__news_json_list = list()
         self.__keyword_json_list = list()
+        self.__invalid_news_json_string_list = list()
 
     def execute(self):
         news_json_string_list = self.__fetch_news_json_string()
@@ -42,20 +42,27 @@ class NewsFileConverter:
 
     def __convert_all_news_json_string(self, news_json_string_list: list, date_string: str):
         for news_json_string in tqdm(news_json_string_list):
-            news_json, keyword_json = SingleNewsContentConverter().execute(
-                news_json_string=news_json_string,
-                date_string=date_string
-            )
+            if JsonFormatChecker.execute(news_json_string) is True:
+                news_json, keyword_json = SingleNewsContentConverter().execute(
+                    news_json_string=news_json_string,
+                    date_string=date_string
+                )
 
-            self.__news_json_list.append(news_json)
-            self.__keyword_json_list.append(keyword_json)
+                self.__news_json_list.append(news_json)
+                self.__keyword_json_list.append(keyword_json)
+            else:
+                self.__invalid_news_json_string_list.append(news_json_string)
 
     def __save_json_to_file(self, date_string: str):
         converted_news_file_path = os.path.join(self.__converted_news_dir_path, "{}-article.json".format(date_string))
         keyword_path = os.path.join(self.__converted_news_dir_path, "{}-keyword.json".format(date_string))
+        invalid_news_json_string_file_path = os.path.join(
+            self.__converted_news_dir_path, "{}-invalid.txt".format(date_string)
+        )
 
         self.__write_json_to_file(json_object=self.__news_json_list, file_path=converted_news_file_path)
         self.__write_json_to_file(json_object=self.__keyword_json_list, file_path=keyword_path)
+        self.__write_invalid_news_json_string_to_file(invalid_news_json_string_file_path)
 
     @staticmethod
     def __write_json_to_file(json_object: list, file_path: str):
@@ -63,6 +70,26 @@ class NewsFileConverter:
             json.dump(json_object, file, ensure_ascii=False)
 
         print("{} saved.".format(file_path))
+
+    def __write_invalid_news_json_string_to_file(self, invalid_news_json_string_file_path):
+        if len(self.__invalid_news_json_string_list) > 0:
+            with open(invalid_news_json_string_file_path, 'a', encoding='utf-8') as file:
+                for invalid_news_json_string in self.__invalid_news_json_string_list:
+                    file.write(invalid_news_json_string)
+
+            print("{} saved.".format(invalid_news_json_string_file_path))
+
+
+class JsonFormatChecker:
+    @staticmethod
+    def execute(news_json_string: str):
+        json_string_is_valid = True
+        try:
+            json.loads(news_json_string)
+        except:
+            json_string_is_valid = False
+
+        return json_string_is_valid
 
 
 class SingleNewsContentConverter:
@@ -99,11 +126,15 @@ if __name__ == '__main__':
     news_file_list = fetch_news_file(news_dir)
     os.makedirs(converted_news_dir, exist_ok=True)
 
+    source = [
+        "news\\articles-20181023.jsonl",
+        "news\\articles-20181024.jsonl",
+        "news\\articles-20181025.jsonl",
+        "news\\articles-20181026.jsonl",
+        "news\\articles-20181027.jsonl",
+    ]
+
     for news_file in news_file_list:
-        try:
+        if news_file in source:
             print("converting: {}".format(news_file))
             NewsFileConverter(news_file_path=news_file, converted_news_dir_path=converted_news_dir).execute()
-        except:
-            print("convert: {} failed.")
-            print(traceback.format_exc())
-
