@@ -126,15 +126,6 @@ if __name__ == '__main__':
     news_file_list = fetch_news_file(news_dir)
     os.makedirs(converted_news_dir, exist_ok=True)
 
-    source = [
-        "news\\articles-20181023.jsonl",
-        "news\\articles-20181024.jsonl",
-        "news\\articles-20181025.jsonl",
-        "news\\articles-20181026.jsonl",
-        "news\\articles-20181027.jsonl",
-    ]
-
     for news_file in news_file_list:
-        if news_file in source:
-            print("converting: {}".format(news_file))
-            NewsFileConverter(news_file_path=news_file, converted_news_dir_path=converted_news_dir).execute()
+        print("converting: {}".format(news_file))
+        NewsFileConverter(news_file_path=news_file, converted_news_dir_path=converted_news_dir).execute()
